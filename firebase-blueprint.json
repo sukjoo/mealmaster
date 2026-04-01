@@ -1,41 +1,28 @@
 {
   "entities": {
-    "FoodItem": {
-      "title": "FoodItem",
-      "description": "Information about a food item in the fridge.",
+    "FridgeItem": {
+      "title": "FridgeItem",
+      "description": "An item stored in the refrigerator",
       "type": "object",
       "properties": {
-        "name": { "type": "string", "description": "The name of the food item." },
-        "category": { "type": "string", "description": "The category of the food item (e.g., Meat, Vegetable, Dairy)." },
-        "expiryDate": { "type": "string", "format": "date", "description": "The expiration date of the food item." },
-        "quantity": { "type": "number", "description": "The quantity of the food item." },
-        "unit": { "type": "string", "description": "The unit of the quantity (e.g., pcs, kg, ml)." },
-        "location": { "type": "string", "enum": ["fridge", "freezer"], "description": "Where the item is stored." },
-        "addedAt": { "type": "string", "format": "date-time", "description": "When the item was added." },
-        "uid": { "type": "string", "description": "The user ID who owns this item." }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "size": { "type": "string", "enum": ["small", "medium", "large"] },
+        "section": { "type": "string", "enum": ["freezer", "fridge"] },
+        "shelfIndex": { "type": "integer" },
+        "gridX": { "type": "integer" },
+        "gridY": { "type": "integer" },
+        "uid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "expiryDate", "location", "uid"]
-    },
-    "UserProfile": {
-      "title": "UserProfile",
-      "description": "User profile information.",
-      "type": "object",
-      "properties": {
-        "displayName": { "type": "string", "description": "The user's display name." },
-        "email": { "type": "string", "format": "email", "description": "The user's email address." },
-        "uid": { "type": "string", "description": "The user's unique ID." }
-      },
-      "required": ["uid", "email"]
+      "required": ["name", "icon", "size", "section", "shelfIndex", "gridX", "gridY", "uid"]
     }
   },
   "firestore": {
-    "/foodItems/{itemId}": {
-      "schema": "FoodItem",
-      "description": "Collection of food items."
-    },
-    "/users/{userId}": {
-      "schema": "UserProfile",
-      "description": "User profile documents."
+    "/items/{itemId}": {
+      "schema": "FridgeItem",
+      "description": "Collection of refrigerator items"
     }
   }
 }

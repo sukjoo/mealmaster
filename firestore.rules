@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: foodItems
+    // Document ID: {itemId}
+    // Fields:
+    //   - name: string (required)
+    //   - category: string (optional)
+    //   - expiryDate: string (required, ISO 8601 format)
+    //   - quantity: number (optional)
+    //   - unit: string (optional)
+    //   - location: string (required, 'fridge' | 'freezer')
+    //   - addedAt: string (optional, ISO 8601 format)
+    //   - uid: string (required)
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - displayName: string (optional)
+    //   - email: string (required)
+    //   - uid: string (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    function isValidFoodItem(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.expiryDate is string && data.expiryDate.matches("^\\d{4}-\\d{2}-\\d{2}.*") &&
+             data.location in ['fridge', 'freezer'] &&
+             data.uid is string && data.uid == request.auth.uid;
+    }
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() > 0 &&
+             data.uid is string && data.uid == request.auth.uid;
+    }
+
+    // Collection: foodItems
+    match /foodItems/{itemId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidFoodItem(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidFoodItem(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    // Collection: users
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && uidNotModified();
+    }
+  }
+}
